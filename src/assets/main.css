@@ -1,0 +1,35 @@
+/* src/assets/main.css */
+@import url('https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500&family=Inter:wght@400;600&display=swap');
+
+:root {
+  --bg-app: #0f172a;
+  --bg-sidebar: #1e293b;
+  --bg-input: #0f172a;
+  --text-main: #f8fafc;
+  --text-muted: #94a3b8;
+  --accent: #3b82f6;
+  --accent-hover: #2563eb;
+  --border: #334155;
+  --glass: rgba(30, 41, 59, 0.95);
+  
+  /* Sera écrasé dynamiquement par JS */
+  --editor-font-size: 15px; 
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body, html, #app { height: 100%; width: 100%; }
+
+body {
+  font-family: 'Inter', sans-serif;
+  background-color: var(--bg-app);
+  color: var(--text-main);
+  overflow: hidden;
+}
+
+/* Scrollbars modernes */
+::-webkit-scrollbar { width: 8px; height: 8px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--border); border-radius: 4px; }
+::-webkit-scrollbar-thumb:hover { background: var(--text-muted); }
+
+button { cursor: pointer; border: none; outline: none; }
