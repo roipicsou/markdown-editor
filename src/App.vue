@@ -8,8 +8,12 @@ import './assets/main.css'; // Import du CSS global
 // On initialise les settings ici pour avoir la taille de police tout de suite
 const { settings } = useSettings();
 
-// Détection simple de l'URL
-const isSettings = computed(() => new URLSearchParams(window.location.search).get('window') === 'settings');
+// On lit ce qu'il y a après le "?" dans l'URL
+const params = new URLSearchParams(window.location.search);
+const windowType = params.get('window'); // ex: 'settings' ou null
+
+// Si 'settings', on affiche SettingsWindow, sinon MainWindow
+const isSettings = computed(() => windowType === 'settings');
 </script>
 
 <template>
