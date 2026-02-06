@@ -15,7 +15,7 @@ function closeWindow() {
 
     <div class="setting-group">
       <label>Taille de police ({{ settings.fontSize }}px)</label>
-      <input type="range" v-model="settings.fontSize" min="12" max="32">
+      <input type="range" v-model.lazy="settings.fontSize" min="12" max="32">
     </div>
 
     <div class="setting-group">
