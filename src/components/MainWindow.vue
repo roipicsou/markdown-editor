@@ -1,4 +1,4 @@
-  <script setup>
+<script setup>
 import { ref, computed } from 'vue';
 import { marked } from 'marked';
 import DOMPurify from 'dompurify';
@@ -6,8 +6,10 @@ import { open, save } from '@tauri-apps/plugin-dialog';
 import { readTextFile, writeTextFile } from '@tauri-apps/plugin-fs';
 import { WebviewWindow } from '@tauri-apps/api/webviewWindow';
 import { useSettings } from '../composables/useSettings';
-
-// Récupération des settings partagés
+import { Codemirror } from 'vue-codemirror';
+import { markdown } from '@codemirror/lang-markdown';
+import { oneDark } from '@codemirror/theme-one-dark';
+import { EditorView } from '@codemirror/view';
 const { settings } = useSettings();
 
 const markdownText = ref('# Hello World');
@@ -15,6 +17,16 @@ const currentFilePath = ref(null);
 const fileName = computed(() => currentFilePath.value ? currentFilePath.value.split(/[\\/]/).pop() : 'Nouveau');
 
 const htmlPreview = computed(() => DOMPurify.sanitize(marked.parse(markdownText.value)));
+
+// --- CONFIGURATION CODEMIRROR ---
+const extensions = computed(() => {
+  const exts = [markdown(), oneDark];
+  if (settings.wordWrap) {
+    exts.push(EditorView.lineWrapping);
+  }
+  
+  return exts;
+});
 
 // --- FILE LOGIC ---
 async function openFile() {
@@ -38,36 +50,21 @@ async function saveFile() {
 }
 
 // --- WINDOW LOGIC ---
-// Dans src/components/MainWindow.vue
-
 async function openSettings() {
   const label = 'settings';
-  
-  // 1. On vérifie si elle existe déjà
   const existing = await WebviewWindow.getByLabel(label);
   if (existing) {
     await existing.setFocus();
     return;
   }
 
-  // 2. On la crée
   const webview = new WebviewWindow(label, {
-    // Utilise 'index.html' explicitement pour éviter les erreurs de chemin
     url: 'index.html?window=settings', 
     title: 'Paramètres',
     width: 400,
     height: 350,
     resizable: false,
     alwaysOnTop: true
-  });
-
-  // 3. Petit debug pour voir si ça marche
-  webview.once('tauri://created', function () {
-    console.log('Fenêtre Paramètres créée avec succès');
-  });
-  
-  webview.once('tauri://error', function (e) {
-    console.error('Erreur création fenêtre:', e);
   });
 }
 </script>
@@ -85,12 +82,17 @@ async function openSettings() {
     </nav>
 
     <main class="workspace">
-      <textarea 
-        class="pane editor" 
-        v-model="markdownText" 
-        :class="{ 'wrap': settings.wordWrap }"
-        spellcheck="false"
-      ></textarea>
+      <div class="pane editor-container">
+        <Codemirror
+          v-model="markdownText"
+          :extensions="extensions"
+          :autofocus="true"
+          :indent-with-tab="true"
+          :tab-size="2"
+          :style="{ fontSize: settings.fontSize + 'px', height: '100%' }"
+        />
+      </div>
+
       <div class="pane preview markdown-body" v-html="htmlPreview"></div>
     </main>
   </div>
@@ -108,10 +110,28 @@ button:hover { background: var(--border); }
 button.primary { background: var(--accent); border-color: var(--accent); }
 
 .workspace { display: flex; height: calc(100vh - 60px); }
-.pane { flex: 1; height: 100%; padding: 30px; overflow-y: auto; }
-.editor { background: var(--bg-input); color: var(--text-main); border: none; resize: none; border-right: 1px solid var(--border); font-family: 'Fira Code', monospace; font-size: var(--editor-font-size); white-space: pre; }
-.editor.wrap { white-space: pre-wrap; }
-.preview { background: var(--bg-app); color: #e2e8f0; }
+
+.pane { flex: 1; height: 100%; overflow-y: auto; }
+.preview { padding: 30px; background: var(--bg-app); color: #e2e8f0; }
+
+.editor-container {
+  border-right: 1px solid var(--border);
+  background: var(--bg-input); 
+  overflow: hidden; 
+}
+
+:deep(.cm-editor) {
+  height: 100%;
+  background-color: var(--bg-input);
+}
+:deep(.cm-scroller) {
+  font-family: 'Fira Code', monospace;
+}
+:deep(.cm-gutters) {
+  background-color: var(--bg-sidebar);
+  border-right: 1px solid var(--border);
+  color: #64748b;
+}
 
 /* Markdown Styles simplifiés */
 :deep(h1) { border-bottom: 1px solid var(--border); padding-bottom: 0.3em; }
